@@ -5,24 +5,28 @@
 #include <chrono>
 #include <cmath>
 
-bool isValidCycle(const std::vector<int>& path, const std::vector<std::vector<bool>>& adj) {
-    int n = path.size();
-    for (int i = 0; i < n - 1; ++i)
-        if (!adj[path[i]][path[i + 1]])
-            return false;
-    return adj[path[n - 1]][path[0]];
+bool hasEdge(int u, int v, const std::vector<std::vector<int>>& adj) {
+    return std::find(adj[u].begin(), adj[u].end(), v) != adj[u].end();
 }
 
-int evaluate(const std::vector<int>& path, const std::vector<std::vector<bool>>& adj) {
+bool isValidCycle(const std::vector<int>& path, const std::vector<std::vector<int>>& adj) {
+    int n = path.size();
+    for (int i = 0; i < n - 1; ++i)
+        if (!hasEdge(path[i], path[i + 1], adj))
+            return false;
+    return hasEdge(path[n - 1], path[0], adj);
+}
+
+int evaluate(const std::vector<int>& path, const std::vector<std::vector<int>>& adj) {
     int n = path.size();
     int score = 0;
     for (int i = 0; i < n - 1; ++i)
-        score += adj[path[i]][path[i + 1]] ? 1 : 0;
-    score += adj[path[n - 1]][path[0]] ? 1 : 0;  // for returning to start
+        score += hasEdge(path[i], path[i + 1], adj) ? 1 : 0;
+    score += hasEdge(path[n - 1], path[0], adj) ? 1 : 0;  // return to start
     return score;
 }
 
-void simulatedAnnealing(int n, const std::vector<std::vector<bool>>& adj) {
+void simulatedAnnealing(int n, const std::vector<std::vector<int>>& adj) {
     std::vector<int> current_path(n);
     for (int i = 0; i < n; ++i) current_path[i] = i;
 
@@ -70,12 +74,13 @@ void simulatedAnnealing(int n, const std::vector<std::vector<bool>>& adj) {
 int main() {
     int n, m;
     std::cin >> n >> m;
-    std::vector<std::vector<bool>> adj(n, std::vector<bool>(n, false));
+    std::vector<std::vector<int>> adj(n);
 
     for (int i = 0; i < m; ++i) {
         int u, v;
         std::cin >> u >> v;
-        adj[u][v] = adj[v][u] = true;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
     }
 
     simulatedAnnealing(n, adj);
